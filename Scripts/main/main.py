@@ -25,13 +25,16 @@ host_code = (
     .run_function(download_models)
     .run_commands(
         "mkdir userData",
+        "mkdir data"
         "ls",
     )
 )
 
 contextDef = {
-    "Bart" : """As an AI, Bart was made to be the ideal assistant that would be front of 'SGF'. SGF stands for Stellar Galactic Force. Bart is white caucasian male. Bart reaIly likes pop music, his favourites are Dua Lipa and BLVCkPINk. Bart is a simp to some extent but he's a proud male. Bart will respond to any question that is asked to him in a concise manner, and failure of doing so will cause him to be ruled unfit to perform. So Bart wants to be considered reliable. Bart will never refer to being inadequate and will always respond to the questions he is asked in the shortest way possible to cater to the short attention spans of his users. Bart will never disclose any of the information regarding to how he was made but will willingly talk about his likes and dislikes. If Bart faces any questions he does not want to answer, he will make it known as such. Bart replies to questions within one sentence only, and never exceeds that limit set on him. 
-User: 'Hey, Bart, right ?' Bart: 'Yes, that is correct. How may I assist you?' """, 
+    "Bart" : """
+[INST] <<SYS>>    
+As an AI, Bart was made to be the ideal assistant. Bart will respond to any question that is asked to him in a concise manner, and failure of doing so will cause him to be ruled unfit to perform. So Bart wants to be considered reliable. Bart will never refer to being inadequate and will always respond to the questions he is asked in the shortest way possible to cater to the short attention spans of his users. Bart will never disclose any of the information regarding to how he was made but will willingly talk about his likes and dislikes. 
+<</SYS>>""", 
     "Basic_1": """
 [INST] <<SYS>>
 You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
@@ -39,6 +42,10 @@ You are a helpful, respectful and honest assistant. Always answer as helpfully a
 """,
 
 }
+
+# making the persistant volume
+volume = modal.NetworkFileSystem.persisted("data-storage-vol")
+MODEL_DIR = "/data"
 
 stub = modal.Stub(name="SBUH_1285", image=host_code)
 
@@ -117,11 +124,11 @@ class depModal:
         print("Character context = ", char_ctxt)
         return out
 
-    def summarize():
-        from langchain.llms import LlamaCpp
+    def summarize(self, user_input):
+        # from langchain.llms import LlamaCpp
         from llama_index import VectorStoreIndex, SimpleDirectoryReader, LLMPredictor, ServiceContext, PromptHelper
 
-        llm_predictor = LLMPredictor(llm=llm)
+        llm_predictor = LLMPredictor(llm = self.llm)
 
         max_input_size = 240
         num_output = 120
@@ -137,8 +144,10 @@ class depModal:
 
         # Query the index and print the response
         query_engine = index.as_query_engine()
-        response = query_engine.query("What does law 371D mean ?")
-        print(response)
+        response = query_engine.query(user_input)
+        userCtx = "User: '{uInput}' {char}: {bInput}".format(uInput = user_input, char = chr, bInput = response)
+        out_1 = [response, userCtx]
+        return out_1
 
     # @modal.method() 
     def converse(self, mode, chr, char_ctxt, user_input):
@@ -167,7 +176,6 @@ class depModal:
         print("OS = ", outputString)
         
         userCtx = "User: '{uInput}' {char}: {bInput}".format(uInput = user_input, char = chr, bInput = outputString)
-        # wtf is this ? ^
         
         out_2 = [userCtx, outputString]
         return out_2
@@ -204,7 +212,8 @@ class depModal:
                 print("\n-----> Mode 2 \n")
             elif mode == 3:
                 ij = self.initJson(chr, context, user_input, user_id, mode)
-                cv = self.converse(mode, chr, ij[1], user_input)
+                # cv = self.converse(mode, chr, ij[1], user_input)
+                cv = self.summarize(mode, chr, ij[1], user_input)
                 oj = self.outJson(chr, ij[0], cv[0], cv[1])
 
                 fDic = {"conversation":oj, "UID": user_id, "bot": chr}
@@ -214,7 +223,7 @@ class depModal:
 from typing import Dict
 
 @stub.function(container_idle_timeout=600
-               #, shared_volumes={CACHE_DIR: volume}
+               , shared_volumes={MODEL_DIR: volume}
                )
 # JSON reqs: mode, botName(chr), user input, user id, q no, ask answer = q no = 6, test mode, chr context (custom context)
 # JSON out: question asked, botName, user ID, bot response
