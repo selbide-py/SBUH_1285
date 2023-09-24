@@ -1,4 +1,4 @@
-import modal, os, json
+import modal, os, json, random
 
 MODEL = "llama-2-13b-chat.Q4_K_M.gguf"
 
