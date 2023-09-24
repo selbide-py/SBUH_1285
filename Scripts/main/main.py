@@ -234,3 +234,6 @@ def cli(dictvar: Dict):
         return dM.masterMethod.call(int(dictvar["mode"]), dictvar["botName"], contextDef[dictvar["botName"]], dictvar["userContext"], dictvar["userId"])
     else:
         return "Error chx0" # character exist = 0
+    
+
+# modal nfs put data-storage-vol  "C:\Users\parvs\VSC Codes\Python-root\SBUH\data\2023050195.pdf" /data
