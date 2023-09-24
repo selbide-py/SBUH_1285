@@ -15,17 +15,17 @@ host_code = (
             "RUN apt-get update && apt-get -y upgrade",
             "RUN apt-get install -y curl python3 python3-pip python-is-python3",
             'RUN LLAMA_CUBLAS=1 pip install llama-cpp-python==0.2.6',
-            'RUN mkdir /root/userData'
+            'RUN mkdir /root/userData',
             'RUN pip install llama_index',
             'RUN pip install unstructured[pdf]',
-            'RUN pip install pypdf'
-            'pip install sentence_transformers',
+            'RUN pip install pypdf',
+            'RUN pip install sentence_transformers',
         ]
     )
     .run_function(download_models)
     .run_commands(
         "mkdir userData",
-        "mkdir data"
+        "mkdir data",
         "ls",
     )
 )
@@ -223,7 +223,7 @@ class depModal:
 from typing import Dict
 
 @stub.function(container_idle_timeout=600
-               , shared_volumes={MODEL_DIR: volume}
+               , network_file_systems={MODEL_DIR: volume}
                )
 # JSON reqs: mode, botName(chr), user input, user id, q no, ask answer = q no = 6, test mode, chr context (custom context)
 # JSON out: question asked, botName, user ID, bot response
