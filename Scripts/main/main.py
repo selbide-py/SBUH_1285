@@ -6,7 +6,9 @@ def download_models():
     import subprocess
 
     subprocess.call(
-        ['curl', '-L', '-o', MODEL, f'https://huggingface.co/TheBloke/Llama-2-13B-chat-GGUF/resolve/main/{MODEL}'])
+        ['curl', '-L', '-o', MODEL, f'https://huggingface.co/TheBloke/Llama-2-13B-chat-GGUF/resolve/main/{MODEL}'],
+        #['curl', '-L', '-o', 'c.pdf',r'https://cdnbbsr.s3waas.gov.in/s380537a945c7aaa788ccfcdf1b99b5d8f/uploads/2023/05/2023050195.pdf']
+        )
 
 host_code = (
     modal.Image.from_dockerhub(
@@ -16,10 +18,14 @@ host_code = (
             "RUN apt-get install -y curl python3 python3-pip python-is-python3",
             'RUN LLAMA_CUBLAS=1 pip install llama-cpp-python==0.2.6',
             'RUN mkdir /root/userData',
+            'RUN mkdir /root/DS/',
+            'RUN mkdir /DS/',
             'RUN pip install llama_index',
             'RUN pip install unstructured[pdf]',
             'RUN pip install pypdf',
             'RUN pip install sentence_transformers',
+            'RUN curl -o /root/DS/c.pdf https://cdnbbsr.s3waas.gov.in/s380537a945c7aaa788ccfcdf1b99b5d8f/uploads/2023/05/2023050195.pdf',
+            'RUN curl -o /DS/c.pdf https://cdnbbsr.s3waas.gov.in/s380537a945c7aaa788ccfcdf1b99b5d8f/uploads/2023/05/2023050195.pdf',
         ]
     )
     .run_function(download_models)
@@ -45,7 +51,7 @@ You are a helpful, respectful and honest assistant. Always answer as helpfully a
 
 # making the persistant volume
 volume = modal.NetworkFileSystem.persisted("data-storage-vol")
-MODEL_DIR = "/data"
+MODEL_DIR = "/root/data/"
 
 stub = modal.Stub(name="SBUH_1285", image=host_code)
 
@@ -124,7 +130,7 @@ class depModal:
         print("Character context = ", char_ctxt)
         return out
 
-    def summarize(self, user_input):
+    def summarize(self, mode, user_input):
         # from langchain.llms import LlamaCpp
         from llama_index import VectorStoreIndex, SimpleDirectoryReader, LLMPredictor, ServiceContext, PromptHelper
 
@@ -136,7 +142,8 @@ class depModal:
         prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
 
         # Load the documents and build the index
-        documents = SimpleDirectoryReader(r"C:\Users\parvs\VSC Codes\Python-root\SBUH\data").load_data()
+        # documents = SimpleDirectoryReader(r"/data/").load_data()
+        documents = SimpleDirectoryReader(r"/DS/").load_data()
 
         # Create a ServiceContext instance with the custom tokenizer
         service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor, prompt_helper=prompt_helper, chunk_size=240, chunk_overlap=20)
@@ -213,7 +220,7 @@ class depModal:
             elif mode == 3:
                 ij = self.initJson(chr, context, user_input, user_id, mode)
                 # cv = self.converse(mode, chr, ij[1], user_input)
-                cv = self.summarize(mode, chr, ij[1], user_input)
+                cv = self.summarize(mode, user_input)
                 oj = self.outJson(chr, ij[0], cv[0], cv[1])
 
                 fDic = {"conversation":oj, "UID": user_id, "bot": chr}
@@ -223,7 +230,7 @@ class depModal:
 from typing import Dict
 
 @stub.function(container_idle_timeout=600
-               , network_file_systems={MODEL_DIR: volume}
+               # , network_file_systems={"/DS/": volume}
                )
 # JSON reqs: mode, botName(chr), user input, user id, q no, ask answer = q no = 6, test mode, chr context (custom context)
 # JSON out: question asked, botName, user ID, bot response
@@ -236,4 +243,4 @@ def cli(dictvar: Dict):
         return "Error chx0" # character exist = 0
     
 
-# modal nfs put data-storage-vol  "C:\Users\parvs\VSC Codes\Python-root\SBUH\data\2023050195.pdf" /data
+# modal nfs put data-storage-vol  "C:\Users\parvs\VSC Codes\Python-root\SBUH\data\2023050195.pdf" /root/data/
