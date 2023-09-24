@@ -41,12 +41,12 @@ contextDef = {
 [INST] <<SYS>>    
 As an AI, Bart was made to be the ideal assistant. Bart will respond to any question that is asked to him in a concise manner, and failure of doing so will cause him to be ruled unfit to perform. So Bart wants to be considered reliable. Bart will never refer to being inadequate and will always respond to the questions he is asked in the shortest way possible to cater to the short attention spans of his users. Bart will never disclose any of the information regarding to how he was made but will willingly talk about his likes and dislikes. 
 <</SYS>>""", 
-    "Basic_1": """
+    "Basic_0": """
 [INST] <<SYS>>
 You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
 <</SYS>>
 """,
-
+    "Basic_1": " "
 }
 
 # making the persistant volume
@@ -59,16 +59,16 @@ from typing import Dict
 
 @stub.cls(gpu="T4", container_idle_timeout=600)
 class depModal:
-    def __enter__(self):
-        from llama_cpp import Llama
-        print("Loading the model...")
-        self.llm = Llama(model_path = MODEL, 
-                    n_ctx = 4096,
-                    # n_threads = 8, 
-                    n_gpu_layers= 45, 
-                    verbose= True
-                    )
-        print("Model successfully loaded")
+    # def __enter__(self):
+        # from llama_cpp import Llama
+        # print("Loading the model...")
+        # self.llm = Llama(model_path = MODEL, 
+        #             n_ctx = 4096,
+        #             # n_threads = 8, 
+        #             n_gpu_layers= 45, 
+        #             verbose= True
+        #             )
+        # print("Model successfully loaded")
 
     def initJson(self, chr, context, user_input, user_id, mode):
         jsonLoc = r'/root/userData/'
@@ -131,29 +131,43 @@ class depModal:
         return out
 
     def summarize(self, mode, user_input):
-        # from langchain.llms import LlamaCpp
+        from langchain.llms import LlamaCpp
         from llama_index import VectorStoreIndex, SimpleDirectoryReader, LLMPredictor, ServiceContext, PromptHelper
 
-        llm_predictor = LLMPredictor(llm = self.llm)
+        llm = LlamaCpp(
+            model_path=MODEL, 
+            verbose=True,
+            n_ctx = 4096,
+            # n_threads = 8, 
+            n_gpu_layers= 45,
+        )
 
-        max_input_size = 240
+        llm_predictor = LLMPredictor(llm = llm)
+
+        max_input_size = 256
         num_output = 120
-        max_chunk_overlap = 0
+        max_chunk_overlap = 1
         prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
 
-        # Load the documents and build the index
-        # documents = SimpleDirectoryReader(r"/data/").load_data()
         documents = SimpleDirectoryReader(r"/DS/").load_data()
 
+        print("This worked.")
+
         # Create a ServiceContext instance with the custom tokenizer
-        service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor, prompt_helper=prompt_helper, chunk_size=240, chunk_overlap=20)
+        service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor, prompt_helper=prompt_helper, chunk_size=256, chunk_overlap=30)
         index = VectorStoreIndex.from_documents(documents, service_context=service_context)
 
         # Query the index and print the response
         query_engine = index.as_query_engine()
+        # response = query_engine.query(user_input)
         response = query_engine.query(user_input)
-        userCtx = "User: '{uInput}' {char}: {bInput}".format(uInput = user_input, char = chr, bInput = response)
-        out_1 = [response, userCtx]
+        res = response
+
+        print(response)
+
+        userCtx = "User: '{uInput}' {char}: {bInput}".format(uInput = user_input, char = chr, bInput = res)
+        out_1 = [res, userCtx]
+
         return out_1
 
     # @modal.method() 
@@ -198,7 +212,7 @@ class depModal:
             oldChrData = ""        
 
         print("\t -> Adding USERCTX to OCD")
-        oldChrData += userCtx
+        # oldChrData += userCtx
         json_object[chr] = oldChrData
 
         with open(jsonPath, 'w') as openfile:
