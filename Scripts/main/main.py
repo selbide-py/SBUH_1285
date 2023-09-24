@@ -16,6 +16,10 @@ host_code = (
             "RUN apt-get install -y curl python3 python3-pip python-is-python3",
             'RUN LLAMA_CUBLAS=1 pip install llama-cpp-python==0.2.6',
             'RUN mkdir /root/userData'
+            'RUN pip install llama_index',
+            'RUN pip install unstructured[pdf]',
+            'RUN pip install pypdf'
+            'pip install sentence_transformers',
         ]
     )
     .run_function(download_models)
@@ -113,6 +117,29 @@ class depModal:
         print("Character context = ", char_ctxt)
         return out
 
+    def summarize():
+        from langchain.llms import LlamaCpp
+        from llama_index import VectorStoreIndex, SimpleDirectoryReader, LLMPredictor, ServiceContext, PromptHelper
+
+        llm_predictor = LLMPredictor(llm=llm)
+
+        max_input_size = 240
+        num_output = 120
+        max_chunk_overlap = 0
+        prompt_helper = PromptHelper(max_input_size, num_output, max_chunk_overlap)
+
+        # Load the documents and build the index
+        documents = SimpleDirectoryReader(r"C:\Users\parvs\VSC Codes\Python-root\SBUH\data").load_data()
+
+        # Create a ServiceContext instance with the custom tokenizer
+        service_context = ServiceContext.from_defaults(llm_predictor=llm_predictor, prompt_helper=prompt_helper, chunk_size=240, chunk_overlap=20)
+        index = VectorStoreIndex.from_documents(documents, service_context=service_context)
+
+        # Query the index and print the response
+        query_engine = index.as_query_engine()
+        response = query_engine.query("What does law 371D mean ?")
+        print(response)
+
     # @modal.method() 
     def converse(self, mode, chr, char_ctxt, user_input):
         if mode == 1:            
@@ -136,7 +163,7 @@ class depModal:
         print("\n {}: ".format(chr))
 
         # outputString = output['choices'][0]["text"].split("{}:".format(chr))[-1].strip("'")
-        outputString = output['choices'][0]["text"]
+        outputString = output['choices'][0]["text"].split("[/INST]")
         print("OS = ", outputString)
         
         userCtx = "User: '{uInput}' {char}: {bInput}".format(uInput = user_input, char = chr, bInput = outputString)
