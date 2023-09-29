@@ -41,12 +41,12 @@ contextDef = {
 [INST] <<SYS>>    
 As an AI, Bart was made to be the ideal assistant. Bart will respond to any question that is asked to him in a concise manner, and failure of doing so will cause him to be ruled unfit to perform. So Bart wants to be considered reliable. Bart will never refer to being inadequate and will always respond to the questions he is asked in the shortest way possible to cater to the short attention spans of his users. Bart will never disclose any of the information regarding to how he was made but will willingly talk about his likes and dislikes. 
 <</SYS>>""", 
-    "Basic_0": """
-[INST] <<SYS>>
+    "Basic_0": """[INST] <<SYS>>
 You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
 <</SYS>>
 """,
-    "Basic_1": " "
+    "Basic_1": " ",
+    "Basic_2": " "
 }
 
 # making the persistant volume
@@ -59,16 +59,16 @@ from typing import Dict
 
 @stub.cls(gpu="T4", container_idle_timeout=600)
 class depModal:
-    # def __enter__(self):
-        # from llama_cpp import Llama
-        # print("Loading the model...")
-        # self.llm = Llama(model_path = MODEL, 
-        #             n_ctx = 4096,
-        #             # n_threads = 8, 
-        #             n_gpu_layers= 45, 
-        #             verbose= True
-        #             )
-        # print("Model successfully loaded")
+    def __enter__(self):
+        from llama_cpp import Llama
+        print("Loading the model...")
+        self.llm = Llama(model_path = MODEL, 
+                    n_ctx = 4096,
+                    # n_threads = 8, 
+                    n_gpu_layers= 45, 
+                    verbose= True
+                    )
+        print("Model successfully loaded")
 
     def initJson(self, chr, context, user_input, user_id, mode):
         jsonLoc = r'/root/userData/'
@@ -161,32 +161,30 @@ class depModal:
         query_engine = index.as_query_engine()
         # response = query_engine.query(user_input)
         response = query_engine.query(user_input)
-        res = response
 
         print(response)
 
-        userCtx = "User: '{uInput}' {char}: {bInput}".format(uInput = user_input, char = chr, bInput = res)
-        out_1 = [res, userCtx]
+        userCtx = "User: '{uInput}' {char}: {bInput}".format(uInput = user_input, char = chr, bInput = response)
+        out_1 = [response, userCtx]
 
         return out_1
 
-    # @modal.method() 
     def converse(self, mode, chr, char_ctxt, user_input):
-        if mode == 1:            
-            # prompt for summary
-            None
-        elif mode == 2:
-            None
-            # prompt for talk2Sum
-        elif mode == 3:
-            None
-            # prompt for talk2Constitution
+        # if mode == 1:            
+        #     # prompt for summary
+        #     None
+        # elif mode == 2:
+        #     None
+        #     # prompt for talk2Sum
+        # elif mode == 3:
+        #     None
+        #     # prompt for talk2Constitution
 
         output = self.llm(char_ctxt +
                         user_input +
                         "[/INST]",
                         max_tokens=512, 
-                        stop=["User:", "\n", 
+                        stop=["User:", "\n",
                               # "{}:".format(chr), 
                               "However"], echo=True)
         
@@ -230,7 +228,11 @@ class depModal:
                 # placeholder
                 None
             elif mode == 2:
-                print("\n-----> Mode 2 \n")
+                ij = self.initJson(chr, context, user_input, user_id, mode)
+                cv = self.converse(mode, chr, ij[1], user_input)
+                oj = self.outJson(chr, ij[0], cv[0], cv[1])
+
+                fDic = {"conversation":oj, "UID": user_id, "bot": chr}
             elif mode == 3:
                 ij = self.initJson(chr, context, user_input, user_id, mode)
                 # cv = self.converse(mode, chr, ij[1], user_input)
