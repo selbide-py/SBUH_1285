@@ -1,4 +1,5 @@
 import modal
+from typing import Dict
 
 MODEL = "llama-2-13b-chat.Q4_K_M.gguf"
 
@@ -47,7 +48,7 @@ class depModal:
 
     def textGen(self, context):
         output = self.llm(context,
-                          max_tokens=512,
+                          max_tokens=256,
                           #   stop=["User:", "\n",
                           #         # "{}:".format(chr),
                           #         "However"],
@@ -55,7 +56,7 @@ class depModal:
                           )
 
         outputYes = output['choices'][0]['text']
-        print(output['choices'][0]['text'])
+        print(outputYes)
         return outputYes
 
     @modal.method()
@@ -65,6 +66,6 @@ class depModal:
 
 @stub.function(gpu="T4", container_idle_timeout=600)
 @modal.web_endpoint(method="POST")
-def cli():
+def cli(varD: Dict):
     dM = depModal()
-    return dM.textGen()
+    return dM.textGen(varD["Q"])
