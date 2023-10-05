@@ -259,7 +259,7 @@ class depModal:
                # , network_file_systems={"/DS/": volume}
                )
 # JSON reqs: mode, botName(chr), user input, user id, q no, ask answer = q no = 6, test mode, chr context (custom context)
-# JSON out: question asked, botName, user ID, bot response
+# JSON out: question asked, botName, user ID, bot response``
 @modal.web_endpoint(method="POST")
 def cli(dictvar: Dict):
     dM = depModal()
