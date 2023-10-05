@@ -1,5 +1,4 @@
 import modal
-# import llama_cpp
 
 MODEL = "llama-2-13b-chat.Q4_K_M.gguf"
 
@@ -14,7 +13,7 @@ def download_models():
 
 
 host_machine_code = (
-    modal.Image.from_dockerhub(
+    modal.Image.from_registry(
         "nvidia/cuda:12.1.1-devel-ubuntu22.04",
         setup_dockerfile_commands=[
             "RUN apt-get update && apt-get -y upgrade",
@@ -23,7 +22,8 @@ host_machine_code = (
     )
     .run_function(download_models)
     .run_commands(
-        # "RUN sudo apt-get -y install cmake",
+        "apt-get -y install cmake",
+        "apt-get -y install protobuf-compiler",
         "apt-get update && apt-get -y install cmake protobuf-compiler",
         'LLAMA_CUBLAS=1 CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python==0.2.6',
     )
@@ -38,30 +38,33 @@ class depModal:
         from llama_cpp import Llama
         print("Loaded the library\nLoading the model....")
         self.llm = Llama(model_path=MODEL,
-                         n_gpu_layers=10,
+                         n_gpu_layers=43,
                          n_ctx=4096,
                          verbose=True,
                          )
 
         print("Model successfully loaded\nAttempting generation")
 
-    def textGen(self):
-        output = self.llm("What is onePlus ?",
+    def textGen(self, context):
+        output = self.llm(context,
                           max_tokens=512,
-                          stop=["User:", "\n",
-                                # "{}:".format(chr),
-                                "However"], echo=True)
+                          #   stop=["User:", "\n",
+                          #         # "{}:".format(chr),
+                          #         "However"],
+                          echo=True
+                          )
 
-        print(output)
-        return output
+        outputYes = output['choices'][0]['text']
+        print(output['choices'][0]['text'])
+        return outputYes
 
     @modal.method()
     def runner(self):
         self.textGen()
 
 
-@stub.function(container_idle_timeout=600)
+@stub.function(gpu="T4", container_idle_timeout=600)
 @modal.web_endpoint(method="POST")
 def cli():
     dM = depModal()
-    dM.runner()
+    return dM.textGen()
