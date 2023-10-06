@@ -9,20 +9,20 @@
 
 # 2
 # TODO Optimize the path-way for using the model, and initializing it (on it)
-# TODO Update the pathway, so it's very linear, but also make sure the code is build-upon-able (Done)
-# TODO try memory management, if time permits (HOW)
+# TODO Update the pathway, so it's very linear, but also make sure the code is build-upon-able (Done)(6.1)
+# TODO try memory management, if time permits (HOW)(6.1)
 # TODO Make CuBlas work, find the code that used to make it work (Done)
 # TODO Make sure it works only once per initliaisation (on it, 2.1)
 # TODO Make it so that multiple people can use it at the same time using only one branch of the AI model (I think this should not even be listed)
 
 # 3
 # TODO UX
-# TODO Make it so that it's the best model that can be used (Need to find a good sentence transformer)
+# TODO Make it so that it's the best model that can be used (Need to find a good sentence transformer)(6.1)
 # TODO Find a good prompt for staying on context (I think I found it)
 
 # 4
 # TODO Indexing
-# TODO Use a good model for the sentence transformers, space and quality wise (3.1)
+# TODO Use a good model for the sentence transformers, space and quality wise (3.1)(6.1)
 # TODO Make sure the indexing works as intended with a 100% hit ratio (It's going to 60-70% at max)
 
 # 5
@@ -33,3 +33,7 @@
 # Drafting document, summarize, talk to summary
 # AI Query Bot:
 # Query to constitution, Dumbing down words via indexing of dictionary
+
+# 6
+# References
+# https://huggingface.co/docs/diffusers/optimization/fp16#memory-and-speed <-For optimizing the model loading and using
