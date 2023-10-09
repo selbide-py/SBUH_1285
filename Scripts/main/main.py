@@ -46,7 +46,7 @@ class depModal:
 
         print("Model successfully loaded\nAttempting generation")
 
-    def textGen(self, context):
+    def textGen(self, context, mode):
         output = self.llm(context,
                           max_tokens=256,
                           #   stop=["User:", "\n",
@@ -57,15 +57,33 @@ class depModal:
 
         xCont = output['choices'][0]['text']
         cCont = xCont.replace(context, "")
-        contMain = [xCont, cCont]
+        contMain = {"xCont": xCont, "cCont": cCont}
 
         print(cCont)
         return contMain
-    # TODO Need to make 2 different variables, xCont and cCont, and make them callable, clearly
+
+    def outputCleanup(self):
+        # TODO Need to make a function that cleans up the output JSON before it gets sent, includes formatting and all that
+        None
 
     @modal.method()
-    def runner(self):
-        self.textGen(self, uN, au,)
+    def runner(self, uN, auth, qCont, mode):
+        template = '''
+[INST] <<SYS>>
+You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
+<</SYS>>
+{prompt}[/INST]
+'''
+        # ? use template.replace("{prompt}", <actual prompt here>)
+        if mode == 1:
+            # ! Basic const talk / dumb down
+            # TODO Need to make it so that llamaIndex/langChain also get a different function to call, can call textGen inside that
+            # TODO Need to add some form of limiters so that god mode(5) actually has some use
+            self.textGen()
+        elif mode == 5:
+            x = self.textGen(template.replace("{prompt}", qCont))
+
+        return x
 
 
 @stub.function(gpu="T4", container_idle_timeout=600)
@@ -75,12 +93,17 @@ def cli(varD: Dict):
 
     # ! Input = userName, auth, qCont, mode
     # ! Output = userName, auth, cCont, xCont, mode
+    # ? I think we can remove "userName", as the routing is the backend thing, the AI server has to do nothing with the name
+    # ? of the user, all it cares about is that it has to generate, and that's it
 
     # ! !!!! IMP, AUTH NEEDS TO BE DONE BY THE BACKEND, WILL NOT BE HANDLED BY THE AI BACKEND !!!!
-    if varD['auth'] == 1:
-        if varD['mode'] in [1, 2, 3, 4, 5]:
-            return dM.runner.call(varD["Q"])
+    if varD.len() == 5:
+        if varD['auth'] == 1:
+            if varD['mode'] in [1, 2, 3, 4, 5]:
+                return dM.runner.call(varD["Q"])
+            else:
+                return "AI Server Message > Error: This mode does not exist"
         else:
-            return "AI Server Message > Error: This mode does not exist"
+            return "AI Server Message > Error: Auth has failed"
     else:
-        return "AI Server Message > Error: Auth has failed"
+        return "AI Server Message > Error: Insufficient parameters"
