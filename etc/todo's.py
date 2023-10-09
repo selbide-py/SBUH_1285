@@ -37,3 +37,19 @@
 # 6
 # References
 # https://huggingface.co/docs/diffusers/optimization/fp16#memory-and-speed <-For optimizing the model loading and using
+
+# 7
+# ! Json Design
+# userName(int(6))
+# auth(0/1)
+#       TODO [Need to make edge case for this, in case auth fails, there is no check on UN, auth is done by backend]
+# cCont(var) [Contains CURRENT context]
+# xCont(var) [Contains WHOLE context]
+# mode(int) [Each mode has a name and integer assigned to it] (5):
+# ?     [
+#       1: Talk to constituion / ask questions regarding law
+#       2: Summarization
+#       3: Talk to summary (Used both 1 and 2, calls a portion of 1)
+#       4: Draft Document (Can use/call a portion 2)
+#       5: Master mode (God Mode) (Make special username for it, bypass AUTH and backend AUTH)
+# ?     ]
