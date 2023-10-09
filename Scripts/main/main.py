@@ -55,17 +55,32 @@ class depModal:
                           echo=True
                           )
 
-        outputYes = output['choices'][0]['text'].replace(context, "")
-        print(outputYes)
-        return outputYes
+        xCont = output['choices'][0]['text']
+        cCont = xCont.replace(context, "")
+        contMain = [xCont, cCont]
+
+        print(cCont)
+        return contMain
+    # TODO Need to make 2 different variables, xCont and cCont, and make them callable, clearly
 
     @modal.method()
     def runner(self):
-        self.textGen()
+        self.textGen(self, uN, au,)
 
 
 @stub.function(gpu="T4", container_idle_timeout=600)
 @modal.web_endpoint(method="POST")
 def cli(varD: Dict):
     dM = depModal()
-    return dM.textGen(varD["Q"])
+
+    # ! Input = userName, auth, qCont, mode
+    # ! Output = userName, auth, cCont, xCont, mode
+
+    # ! !!!! IMP, AUTH NEEDS TO BE DONE BY THE BACKEND, WILL NOT BE HANDLED BY THE AI BACKEND !!!!
+    if varD['auth'] == 1:
+        if varD['mode'] in [1, 2, 3, 4, 5]:
+            return dM.runner.call(varD["Q"])
+        else:
+            return "AI Server Message > Error: This mode does not exist"
+    else:
+        return "AI Server Message > Error: Auth has failed"
