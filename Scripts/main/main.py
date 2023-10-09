@@ -39,7 +39,7 @@ class depModal:
         from llama_cpp import Llama
         print("Loaded the library\nLoading the model....")
         self.llm = Llama(model_path=MODEL,
-                         n_gpu_layers=43,
+                         n_gpu_layers=40,
                          n_ctx=4096,
                          verbose=True,
                          )
@@ -55,7 +55,7 @@ class depModal:
                           echo=True
                           )
 
-        outputYes = output['choices'][0]['text']
+        outputYes = output['choices'][0]['text'].replace(context, "")
         print(outputYes)
         return outputYes
 
