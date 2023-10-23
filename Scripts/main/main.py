@@ -46,7 +46,8 @@ class depModal:
 
         print("Model successfully loaded\nAttempting generation")
 
-    def textGen(self, context, mode):
+    def textGen(self, cCont, qCont):
+        context = cCont + qCont
         output = self.llm(context,
                           max_tokens=256,
                           #   stop=["User:", "\n",
@@ -59,18 +60,22 @@ class depModal:
         cCont = xCont.replace(context, "")
         contMain = {"xCont": xCont, "cCont": cCont}
 
-        print(cCont)
+        # print(cCont)
         return contMain
 
-    def outputCleanup(self):
+    def outputCleanup(self, userName, contMain, mode):
         # TODO Need to make a function that cleans up the output JSON before it gets sent, includes formatting and all that
-        None
+        x = {"userName": userName,
+             "xCont": contMain["xCont"],
+             "cCont": contMain["cCont"],
+             "mode": mode}
+        return x
 
     @modal.method()
-    def runner(self, uN, auth, qCont, mode):
+    def runner(self, userName, cCont, qCont, mode):
         template = '''
 [INST] <<SYS>>
-You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
+You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe. If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
 <</SYS>>
 {prompt}[/INST]
 '''
@@ -80,8 +85,13 @@ You are a helpful, respectful and honest assistant. Always answer as helpfully a
             # TODO Need to make it so that llamaIndex/langChain also get a different function to call, can call textGen inside that
             # TODO Need to add some form of limiters so that god mode(5) actually has some use
             self.textGen()
+        elif mode == 2:
+            None
         elif mode == 5:
-            x = self.textGen(template.replace("{prompt}", qCont))
+            prompt = template.replace("{prompt}", qCont)
+            y = self.textGen(cCont, prompt)
+            print(y)
+            x = self.outputCleanup(userName, y, mode)
 
         return x
 
@@ -91,19 +101,22 @@ You are a helpful, respectful and honest assistant. Always answer as helpfully a
 def cli(varD: Dict):
     dM = depModal()
 
-    # ! Input = userName, auth, qCont, mode
-    # ! Output = userName, auth, cCont, xCont, mode
+    # ! Input = userName, auth, cCont, qCont, mode
+    # ! Output = userName, cCont, xCont, mode
     # ? I think we can remove "userName", as the routing is the backend thing, the AI server has to do nothing with the name
     # ? of the user, all it cares about is that it has to generate, and that's it
 
     # ! !!!! IMP, AUTH NEEDS TO BE DONE BY THE BACKEND, WILL NOT BE HANDLED BY THE AI BACKEND !!!!
-    if varD.len() == 5:
-        if varD['auth'] == 1:
-            if varD['mode'] in [1, 2, 3, 4, 5]:
-                return dM.runner.call(varD["Q"])
+    try:
+        if len(varD) == 5:
+            if int(varD['auth']) == 1:
+                if int(varD['mode']) in [1, 2, 3, 4, 5]:
+                    return dM.runner.call(varD["userName"], varD["cCont"], varD["qCont"], int(varD["mode"]))
+                else:
+                    return "AI Server Message > Error: This mode does not exist"
             else:
-                return "AI Server Message > Error: This mode does not exist"
+                return "AI Server Message > Error: Auth has failed"
         else:
-            return "AI Server Message > Error: Auth has failed"
-    else:
-        return "AI Server Message > Error: Insufficient parameters"
+            return "AI Server Message > Error: Insufficient parameters"
+    except:
+        return "AI Server Message > Error: Code ran into some issues"
