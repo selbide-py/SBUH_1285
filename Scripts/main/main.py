@@ -19,6 +19,10 @@ host_machine_code = (
         setup_dockerfile_commands=[
             "RUN apt-get update && apt-get -y upgrade",
             "RUN apt-get install -y curl python3 python3-pip python-is-python3",
+            'RUN mkdir /root/DS/',
+            'RUN mkdir /DS/',
+            'RUN curl -o /root/DS/c.pdf https://cdnbbsr.s3waas.gov.in/s380537a945c7aaa788ccfcdf1b99b5d8f/uploads/2023/05/2023050195.pdf',
+            'RUN curl -o /DS/c.pdf https://cdnbbsr.s3waas.gov.in/s380537a945c7aaa788ccfcdf1b99b5d8f/uploads/2023/05/2023050195.pdf',
         ]
     )
     .run_function(download_models)
@@ -27,8 +31,12 @@ host_machine_code = (
         "apt-get -y install protobuf-compiler",
         "apt-get update && apt-get -y install cmake protobuf-compiler",
         'LLAMA_CUBLAS=1 CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python==0.2.6',
+        'pip install langchain'
     )
 )
+
+# Flow
+# __enter__(always runs on first run) --> {textGen --> outputCleanup}[All run via runner]
 
 stub = modal.Stub(name="SBUH_1285", image=host_machine_code)
 
@@ -46,14 +54,15 @@ class depModal:
 
         print("Model successfully loaded\nAttempting generation")
 
-    def textGen(self, cCont, qCont):
+    def textGen(self, cCont, qCont, temp=0.6):
         context = cCont + qCont
         output = self.llm(context,
                           max_tokens=256,
                           #   stop=["User:", "\n",
                           #         # "{}:".format(chr),
                           #         "However"],
-                          echo=True
+                          temperature=temp,
+                          echo=True,
                           )
 
         xCont = output['choices'][0]['text']
@@ -62,9 +71,41 @@ class depModal:
 
         # print(cCont)
         return contMain
+    
+    def lcGen(mode, qCont):
+        from langchain.llms import LlamaCpp
+        from langchain.prompts import PromptTemplate
+        from langchain.chains import LLMChain
+        from langchain.callbacks.manager import CallbackManager
+        from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+
+        template = """Question: {question}
+        Answer: Sure - """
+        prompt = PromptTemplate(template=template, input_variables=["question"])
+        # Callbacks support token-wise streaming
+        callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
+
+        # Make sure the model path is correct for your system!
+        llm = LlamaCpp(
+            model_path="/Users/rlm/Desktop/Code/llama.cpp/models/openorca-platypus2-13b.gguf.q4_0.bin",
+            temperature=0.75,
+            max_tokens=2000,
+            top_p=1,
+            callback_manager=callback_manager,
+            verbose=True,  # Verbose is required to pass to the callback manager
+        )
+
+        llm_chain = LLMChain(prompt=prompt, llm=llm)
+        # TODO Import the llm object from the textGen function
+        # TODO check how to actually work out LLAMACPP via LC and if it's any different from native LCPP
+        # TODO check how does the "QUESTION" input_variable work, and how does it work
+        # TODO what does callback_manager do ?
+        question = qCont
+        llm_chain.run(question)
+        
 
     def outputCleanup(self, userName, contMain, mode):
-        # TODO Need to make a function that cleans up the output JSON before it gets sent, includes formatting and all that
+        # TODO Need to make it go through formatting of the output
         x = {"userName": userName,
              "xCont": contMain["xCont"],
              "cCont": contMain["cCont"],
@@ -86,6 +127,7 @@ You are a helpful, respectful and honest assistant. Always answer as helpfully a
             # TODO Need to add some form of limiters so that god mode(5) actually has some use
             self.textGen()
         elif mode == 2:
+            # ! Summarisation
             None
         elif mode == 5:
             prompt = template.replace("{prompt}", qCont)
