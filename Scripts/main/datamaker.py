@@ -1,67 +1,71 @@
-import os
-
-import os
 import pandas as pd
-
-folder_path = "/path/to/your/folder"
-
-# Create an empty DataFrame
-df = pd.DataFrame()
-
-# Iterate through the files in the directory
-for filename in os.listdir(folder_path):
-    if filename.endswith(".txt"):
-        file_path = os.path.join(folder_path, filename)
-        with open(file_path, 'r') as f:
-            # Assuming each .txt file contains a single column of data
-            data = pd.read_csv(f, header=None, sep="\n", names=[filename])
-            df = pd.concat([df, data], axis=1)  # Concatenate the data horizontally
-
-# Save the DataFrame to a .csv file
-df.to_csv("/path/to/save/final.csv", index=False)
-
-"""
+import re
 import os
-import pandas as pd
 
-folder_path = "/path/to/your/folder"
+# Specify the folder path
+folder_path = r"D:\Downloads\dataset\IN-Abs\train-data\judgement"
 
-# Create an empty DataFrame with specified columns
-df = pd.DataFrame(columns=["Name", "Age", "City"])
+# List of specific files you want to read
+specific_files = ["3.txt", "1.txt"]
+texts = []
 
-# Iterate through the files in the directory
-for filename in os.listdir(folder_path):
-    if filename.endswith(".txt"):
-        file_path = os.path.join(folder_path, filename)
-        with open(file_path, 'r') as f:
-            content = f.readlines()
-            # Remove any newlines or whitespace
-            content = [x.strip() for x in content if x.strip() != '']
-            data_dict = {}
-            for line in content:
-                key, value = line.split(":")
-                data_dict[key.strip()] = value.strip()
-            df = df.append(data_dict, ignore_index=True)
+# Lists to store extracted data
+case_identifiers = []
+case_descriptions = []
+lawyer_representations = []
+judgment_dates = []
+presiding_judges = []
 
-# Save the DataFrame to a .csv file
-df.to_csv("/path/to/save/final.csv", index=False)
+# Read each specific file
+for file_name in specific_files:
+    file_path = os.path.join(folder_path, file_name)
 
-# TODO
- 
-format to be followed to read the files
-lines:
-1 - Civil Appeal/ Appeal (no. x of y)
-2 - What's the appeal, under what section, date mentioned, so are the laws cited if any
-2 - Under which court (location) and under which Judge, and any cases refered to 
-3 - Name of lawyer (who with) [apellant]
-4 - Respondent
-5 - Date
-6 - Judgement delivered by x [Name of the judge]
-7 - Cause for appeal
-8 - 
-9 - 
-"""
+    # Check if the file exists
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        with open(file_path, 'r') as file:
+            l1 = file.readline()
+            case_identifiers.append(l1)
+            content = file.read()
+            print("File worked")
+            texts.append(content)
 
-# TODO Note to self, we have to make a reinforcement training based model that we can work on the train dataset to get the output as close to the test dataset as possible
-# Now I am thinking, how do i get lora involved, I need to understand what the fuck reinforcment does, then I have to clean out the data and put into a dataset and then we'll
-# see from there, sounds good
+            # print(f"Contents of {file_name}:\n{content}\n{'-'*40}\n")
+    else:
+        print(f"{file_name} not found in the specified folder.\n")
+
+for text in texts:
+    # Extracting case identifier
+    # case_id_match = re.search(r'^[A-Za-z\s\.\-]+\d+ of \d+\.', text)
+    # case_id_match = read_specific_line(text, 0)
+    # print(case_id_match)
+    # case_identifiers.append(case_id_match.group() if case_id_match else None)
+
+    # Extracting case description or brief statement
+    case_desc_match = re.search(r'(?<=\d{4}\.)\s+([\w\s]+)', text)
+    case_descriptions.append(case_desc_match.group(1)
+                             if case_desc_match else None)
+
+    # Extracting lawyer representations
+    lawyers_match = re.findall(
+        r'([A-Z][\w\s\.]+)(\([\w\s,\.]+\))? for the (appellant|petitioner|respondent|opposite party)', text)
+    lawyer_representations.append(lawyers_match if lawyers_match else None)
+
+    # Extracting judgment date
+    date_match = re.search(r'\d{4}\.\s+\w+\s+\d+\.', text)
+    judgment_dates.append(date_match.group() if date_match else None)
+
+    # Extracting presiding judges
+    judge_match = re.search(
+        r'(?:The Judgment of the Court was delivered by|judgments were delivered:)\s+([\w\s\.]+)', text)
+    presiding_judges.append(judge_match.group(1) if judge_match else None)
+
+# Creating a dataframe
+df = pd.DataFrame({
+    'Case Identifier': case_identifiers,
+    'Case Description': case_descriptions,
+    'Lawyer Representations': lawyer_representations,
+    'Judgment Date': judgment_dates,
+    'Presiding Judge': presiding_judges
+})
+
+print(df)
