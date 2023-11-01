@@ -50,6 +50,7 @@ df.to_csv("/path/to/save/final.csv", index=False)
  
 format to be followed to read the files
 lines:
+<<<<<<< HEAD
 1 - Civil Appeal/ Appeal (no. x of y)
 2 - What's the appeal, under what section, date mentioned, so are the laws cited if any
 2 - Under which court (location) and under which Judge, and any cases refered to 
@@ -61,7 +62,15 @@ lines:
 8 - 
 9 - 
 """
+A
 
 # TODO Note to self, we have to make a reinforcement training based model that we can work on the train dataset to get the output as close to the test dataset as possible
 # Now I am thinking, how do i get lora involved, I need to understand what the fuck reinforcment does, then I have to clean out the data and put into a dataset and then we'll
 # see from there, sounds good
+=======
+1 - name of the case (?)
+2 - Application / article / what for
+3 - facts ?
+4 - 
+"""
+>>>>>>> 74562e054fc260e753f66a2c3b84e94c045905b7
