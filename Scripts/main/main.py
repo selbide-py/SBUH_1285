@@ -71,7 +71,7 @@ class depModal:
 
         # print(cCont)
         return contMain
-    
+
     def lcGen(mode, qCont):
         from langchain.llms import LlamaCpp
         from langchain.prompts import PromptTemplate
@@ -81,13 +81,14 @@ class depModal:
 
         template = """Question: {question}
         Answer: Sure - """
-        prompt = PromptTemplate(template=template, input_variables=["question"])
+        prompt = PromptTemplate(
+            template=template, input_variables=["question"])
         # Callbacks support token-wise streaming
         callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
 
         # Make sure the model path is correct for your system!
         llm = LlamaCpp(
-            model_path="/Users/rlm/Desktop/Code/llama.cpp/models/openorca-platypus2-13b.gguf.q4_0.bin",
+            model_path=MODEL,
             temperature=0.75,
             max_tokens=2000,
             top_p=1,
@@ -102,7 +103,6 @@ class depModal:
         # TODO what does callback_manager do ?
         question = qCont
         llm_chain.run(question)
-        
 
     def outputCleanup(self, userName, contMain, mode):
         # TODO Need to make it go through formatting of the output
