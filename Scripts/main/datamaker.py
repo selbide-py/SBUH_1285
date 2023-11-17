@@ -19,7 +19,6 @@ case_no = []
 
 # Read each specific file
 
-
 def work0():
     for file_name in os.listdir(folder_path):
         file_path = os.path.join(folder_path, file_name)
@@ -125,7 +124,7 @@ df.to_csv('output.csv', sep=",", index=False)
 
 """
 # TODO
- 
+
 format to be followed to read the files
 lines:
 1 - Civil Appeal/ Appeal (no. x of y)
