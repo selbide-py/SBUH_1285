@@ -58,42 +58,6 @@ host_machine_code = (
     )
 )
 
-# host_machine_code = (
-#     modal.Image.debian_slim(
-#     ).extend(
-#         dockerfile_commands=[
-#             "RUN apt-get update && apt-get -y upgrade",
-#             "RUN apt-get install -y curl python3 python3-pip python-is-python3",
-#             'RUN pip install gdown',
-#             'RUN mkdir /root/DS/',
-#             'RUN mkdir /DS/',
-#             'RUN curl -o /root/DS/c.pdf https://cdnbbsr.s3waas.gov.in/s380537a945c7aaa788ccfcdf1b99b5d8f/uploads/2023/05/2023050195.pdf',
-#             'RUN curl -o /DS/c.pdf https://cdnbbsr.s3waas.gov.in/s380537a945c7aaa788ccfcdf1b99b5d8f/uploads/2023/05/2023050195.pdf',
-#             'mkdir /root/DS/legalLm/',
-#             'cd /root/DS/legalLm/',
-#             'ls',
-#             'RUN gdown https://drive.google.com/uc?id=1mRsrXc9d2Tb7Wr2RXJJNDHtxMZa1osnY',
-#             'RUN gdown https://drive.google.com/uc?id=1g6n6bEua8Lobs-2v2hSph0c8hDQu6Evg',
-#             'RUN gdown https://drive.google.com/uc?id=1cyNsDAy90UMg0TIL3Sgv87VP4FQeJSZN',
-#             'RUN gdown https://drive.google.com/uc?id=1LNO25lfqeAUsMasD0MwBCPO6w4_GJ-Uo',
-#             'RUN gdown https://drive.google.com/uc?id=12IlRpbFnRpKvfh7-4wpicV7q4RUrUhSw',
-#             'RUN gdown https://drive.google.com/uc?id=1-GGNsmtu7RIGDmkid4-CzP3ZVuu6BxHo',
-#             'RUN gdown https://drive.google.com/uc?id=1-C0wB9h1nNfGTzIVx5P9A-USyZcqpDoB',
-#             'RUN gdown https://drive.google.com/uc?id=1-71kufADT-LW0z7dgnuh6NFWdH9bIHW7',
-#             'ls',
-#         ]
-#     ).run_function(
-#         download_models
-#     ).pip_install(
-#         "torch", "transformers", "sentencepiece", "langchain"
-#     ).run_commands(
-#         "apt-get -y install cmake",
-#         "apt-get -y install protobuf-compiler",
-#         "apt-get update && apt-get -y install cmake protobuf-compiler",
-#         'LLAMA_CUBLAS=1 CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python==0.2.6',
-#     )
-# )
-
 # Flow
 # __enter__(always runs on first run) --> {textGen --> outputCleanup}[All run via runner]
 
