@@ -141,5 +141,3 @@ lines:
 # TODO Note to self, we have to make a reinforcement training based model that we can work on the train dataset to get the output as close to the test dataset as possible
 # Now I am thinking, how do i get lora involved, I need to understand what the fuck reinforcment does, then I have to clean out the data and put into a dataset and then we'll
 # see from there, sounds good
-
-# TODO hey
