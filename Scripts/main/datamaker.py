@@ -19,6 +19,7 @@ case_no = []
 
 # Read each specific file
 
+
 def work0():
     for file_name in os.listdir(folder_path):
         file_path = os.path.join(folder_path, file_name)
@@ -140,3 +141,5 @@ lines:
 # TODO Note to self, we have to make a reinforcement training based model that we can work on the train dataset to get the output as close to the test dataset as possible
 # Now I am thinking, how do i get lora involved, I need to understand what the fuck reinforcment does, then I have to clean out the data and put into a dataset and then we'll
 # see from there, sounds good
+
+# TODO hey
