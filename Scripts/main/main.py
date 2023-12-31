@@ -12,12 +12,13 @@ def download_models():
             f'https://huggingface.co/TheBloke/Llama-2-13B-chat-GGUF/resolve/main/{MODEL}']
     )
 
-
+# aaaa
 # host_machine_code = (
 #     modal.Image.from_registry(
 
     # "nvidia/cuda:12.1.1-devel-ubuntu22.04",
     # setup_dockerfile_commands=[
+
 
 host_machine_code = (
     modal.Image.from_registry(
