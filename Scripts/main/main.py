@@ -12,7 +12,6 @@ def download_models():
             f'https://huggingface.co/TheBloke/Llama-2-13B-chat-GGUF/resolve/main/{MODEL}']
     )
 
-# aaaa
 # host_machine_code = (
 #     modal.Image.from_registry(
 
